@@ -2,7 +2,7 @@ module Main where
 
 import Protolude
 import Distribution.Client.Init.Types
-import Distribution.Simple.Setup (Flag(Flag))
+import Distribution.Simple.Setup (Flag(Flag, NoFlag))
 import Distribution.License (License(GPL))
 import Distribution.Package (PackageName(PackageName)
                             , Dependency(Dependency))
@@ -13,14 +13,14 @@ import Distribution.Client.Init (initCabalNoHeuristics)
 import Language.Haskell.Extension (Language(Haskell2010))
 
 main :: IO ()
-main = initCabalNoHeuristics flags
+main = initCabalNoHeuristics $ flags "foobar" Executable [ "protolude" ]
 
 
 flags :: Text -> PackageType -> [Text] -> InitFlags
 flags name type_ packages = InitFlags
   { nonInteractive = Flag True
   , quiet          = Flag False
-  , packageDir     = Flag "src"
+  , packageDir     = NoFlag
   , noComments     = Flag True
   , minimal        = Flag True
 
