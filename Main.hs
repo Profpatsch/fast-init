@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric, RecordWildCards, TypeOperators, DataKinds, ViewPatterns #-}
 module Main where
 
 import Protolude
@@ -12,11 +13,28 @@ import Distribution.Verbosity (silent)
 import Distribution.Client.Init (initCabalNoHeuristics)
 import Language.Haskell.Extension (Language(Haskell2010))
 
+import Options.Generic
+
+type Name = Text
+type Package = Text
+data Args = Args { name         :: Name <?> "project name"
+                 , isExecutable :: Bool <?> "default: library project" }
+          deriving (Show, Generic)
+
+instance ParseRecord Args
+
 main :: IO ()
-main = initCabalNoHeuristics $ flags "foobar" Executable [ "protolude" ]
+main = getRecord "fast cabal init" >>= init
 
+defaultPackages :: [Package]
+defaultPackages = [ "base", "protolude" ]
 
-flags :: Text -> PackageType -> [Text] -> InitFlags
+init :: Args -> IO ()
+init Args{ name = Helpful name
+         , isExecutable = Helpful (bool Library Executable -> exec) }
+  = initCabalNoHeuristics $ flags name exec defaultPackages
+
+flags :: Name -> PackageType -> [Text] -> InitFlags
 flags name type_ packages = InitFlags
   { nonInteractive = Flag True
   , quiet          = Flag False
@@ -35,7 +53,7 @@ flags name type_ packages = InitFlags
   , synopsis       = Flag ""
   , category       = Flag $ Left ""
   , extraSrc       = Nothing
-  
+
   , packageType    = Flag type_
   , mainIs         = Flag "Main.hs"
   , language       = Flag Haskell2010
